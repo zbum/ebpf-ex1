@@ -12,12 +12,20 @@ import (
 )
 
 func main() {
-	// Remove resource limits for kernels <5.11.
+    // RemoveMemlock 함수는 현행 프로세스가 RAM에 lock할 수 있는 메모리양의 제한을 제거합니다.
+	// cgroup 기반의 메모리 계산 방식을 사용하기 때문에, kernel version 5.11 이상 버전에서는 필요하지 않습니다. (커널 버전은 uname -r 로 확인할 수 있습니다.)
+	// 최신 버전에서는 아무런 기능을 하지 않습니다.
+	//
+	// 함수는 전역 프로세스별 제한을 변경할 수 있기 때문에 이 함수는 프로그램 시작할때 실행해야 합니다. 
+	// 
+	// 이 함수는 편의를 위한 것이고 RLIMIT_MEMLOCK를 영구적인 무한대로 설정하는 것이 적절한 경우에 사용해야 합니다. 
+	// 원한다면, 더 타당한 제한을 가진 prlimit를 직접 실행하는 것을 고려하세요.
+
 	if err := rlimit.RemoveMemlock(); err != nil {
 		log.Fatal("Removing memlock:", err)
 	}
 
-	// Load the compiled eBPF ELF and load it into the kernel.
+	// 컴파일한 eBPF ELF를 로드하고 이것을 커널에 로드합니다.
 	var objs counterObjects
 	if err := loadCounterObjects(&objs, nil); err != nil {
 		log.Fatal("Loading eBPF objects:", err)
